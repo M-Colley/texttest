@@ -784,11 +784,13 @@ class ImportFiles(guiplugins.ActionDialogGUI):
         self.creationDir = None
         self.defaultAppendAppName = False
         self.appendAppName = False
+        self.fileType = ""
         self.currentStem = ""
         self.fileChooser = None
         self.newFileInfo = (None, False)
         guiplugins.ActionDialogGUI.__init__(self, allApps, dynamic, inputOptions)
-        self.addOption("stem", "Type of file/directory to create", allocateNofValues=2)
+        self.addOption("stem", "Type of file/directory to create", allocateNofValues=2,
+                       description="Select or enter a file or directory stem (includes both definition and data files)")
         self.addOption("v", "Version identifier to use")
         possibleDirs = self.getPossibleDirs(allApps, inputOptions)
         # The point of this is that it's never sensible as the source for anything, so it serves as a "use the parent" option
@@ -850,8 +852,7 @@ class ImportFiles(guiplugins.ActionDialogGUI):
             version = self.optionGroup.getOptionValue("v")
             sourcePath = self.getDefaultSourcePath(newStem, version)
             self.optionGroup.setValue("src", sourcePath)
-            if self.defaultAppendAppName:
-                self.updateAppendAppName(newStem != "testcustomize.py")
+            self.updateAppendAppName(self.shouldAppendAppName(newStem))
 
     def actionChanged(self, *args):
         if self.fileChooser:
@@ -912,6 +913,7 @@ class ImportFiles(guiplugins.ActionDialogGUI):
 
     def notifyFileCreationInfo(self, creationDir, fileType):
         self.fileChooser = None
+        self.fileType = fileType
         if fileType == "external":
             self.creationDir = None
             self.setSensitivity(False)
@@ -920,9 +922,21 @@ class ImportFiles(guiplugins.ActionDialogGUI):
             newActive = creationDir is not None
             self.setSensitivity(newActive)
             if newActive:
-                self.updateStems(fileType)
                 self.defaultAppendAppName = (fileType == "definition" or fileType == "approved")
-                self.updateAppendAppName(self.defaultAppendAppName)
+                self.updateStems(fileType)
+                initialStem = self.optionGroup.getOptionValue("stem")
+                self.updateAppendAppName(self.shouldAppendAppName(initialStem) if initialStem else self.defaultAppendAppName)
+
+    def shouldAppendAppName(self, stem):
+        if self.fileType == "approved":
+            return True
+        if stem == "testcustomize.py":
+            return False
+        if stem in self.getDefinitionFiles():
+            return True
+        if stem in self.currTestSelection[0].getDataFileNames():
+            return False
+        return self.defaultAppendAppName
 
     def updateAppendAppName(self, setting):
         self.appendAppName = setting
@@ -930,9 +944,13 @@ class ImportFiles(guiplugins.ActionDialogGUI):
 
     def findAllStems(self, fileType):
         if fileType == "definition":
-            return self.getDefinitionFiles()
+            defFiles = self.getDefinitionFiles()
+            dataFiles = self.currTestSelection[0].getDataFileNames()
+            return defFiles + [d for d in dataFiles if d not in defFiles]
         elif fileType == "data":
-            return self.currTestSelection[0].getDataFileNames()
+            dataFiles = self.currTestSelection[0].getDataFileNames()
+            defFiles = self.getDefinitionFiles()
+            return dataFiles + [d for d in defFiles if d not in dataFiles]
         elif fileType == "approved":
             return self.getApprovedFiles()
         else:
