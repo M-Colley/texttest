@@ -152,7 +152,8 @@ class QueueSystem(gridqueuesystem.QueueSystem):
         if not os.path.isfile(errFile):
             return ""
 
-        errLines = open(errFile).read().splitlines()
+        with open(errFile, encoding=getLocaleEncoding(), errors="replace") as f:
+            errLines = f.read().splitlines()
         errText = "\n".join(errLines[-3:])
         if not errText:
             return ""
@@ -278,7 +279,8 @@ def getExecutionMachines():
     hostFile = os.getenv("PE_HOSTFILE")
     if not hostFile or not os.path.isfile(hostFile):
         return [gethostname()]
-    hostlines = open(hostFile).readlines()
+    with open(hostFile, encoding=getLocaleEncoding(), errors="replace") as f:
+        hostlines = f.readlines()
     hostlist = []
     for line in hostlines:
         parts = line.strip().split()

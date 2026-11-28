@@ -252,15 +252,16 @@ class DocumentEnvironment(plugins.Action):
     def findVarsInFile(self, path, vars, prefixes):
         import re
         regexes = [re.compile(r"([^/ \"'\.,\(]*)[\(]?[\"'](" + prefix + r"[^/ \"'\.,]*)") for prefix in prefixes]
-        for line in open(path):
-            for regex in regexes:
-                match = regex.search(line)
-                if match is not None:
-                    functionName = match.group(1)
-                    var = match.group(2).strip()
-                    if self.isRelevant(var, vars, prefixes):
-                        argList = self.getArgList(line, functionName)
-                        vars[var] = argList
+        with open(path, encoding="utf-8", errors="replace") as f:
+            for line in f:
+                for regex in regexes:
+                    match = regex.search(line)
+                    if match is not None:
+                        functionName = match.group(1)
+                        var = match.group(2).strip()
+                        if self.isRelevant(var, vars, prefixes):
+                            argList = self.getArgList(line, functionName)
+                            vars[var] = argList
 
     def setUpApplication(self, app):
         vars = self.getEntriesToUse(app)

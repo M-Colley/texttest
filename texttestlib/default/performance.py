@@ -21,7 +21,8 @@ from functools import cmp_to_key
 def getPerformance(fileName):
     if not fileName:
         return float(-1)
-    line = open(fileName).readline()
+    with plugins.FileEncoding.forFile(fileName).open(fileName, errors="replace") as f:
+        line = f.readline()
     return getPerformanceFromLine(line)
 
 
@@ -42,7 +43,8 @@ def getTestPerformance(test, version=None):
 
 
 def describePerformance(fileName):
-    line = open(fileName).readline().strip()
+    with plugins.FileEncoding.forFile(fileName).open(fileName, errors="replace") as f:
+        line = f.readline().strip()
     if "mem" in os.path.basename(fileName):
         return line
 
@@ -196,10 +198,12 @@ class PerformanceFileComparison(FileComparison):
         avgPerformance = self.perfComparison.getAverage()
         self.diag.info("Found average performance = " + str(avgPerformance) + 
                        ", new performance = " + str(self.perfComparison.newPerformance))
-        line = open(tmpFile).readlines()[0]
+        encoding = self.getEncoding(tmpFile)
+        with encoding.open(tmpFile, errors="replace") as f:
+            line = f.readlines()[0]
         lineToWrite = line.replace(str(self.perfComparison.newPerformance), str(avgPerformance))
-        newFile = open(destFile, "w")
-        newFile.write(lineToWrite)
+        with encoding.open(destFile, "w") as newFile:
+            newFile.write(lineToWrite)
 
 # class purely for comparing two performance numbers, independent of the files they come from
 

@@ -1144,10 +1144,11 @@ class UNIXPerformanceInfoFinder:
         if not os.path.isfile(tmpFile):
             return None, None
 
-        file = open(tmpFile)
         cpuTime = None
         realTime = None
-        for line in file.readlines():
+        with plugins.openTestDataFile(tmpFile, test, errors="replace") as file:
+            lines = file.readlines()
+        for line in lines:
             self.diag.info("Parsing line " + line.strip())
             if line.startswith("user") or line.startswith("User"):
                 cpuTime = self.parseUnixTime(line)
@@ -1191,13 +1192,13 @@ class MakePerformanceFile(PerformanceFileCreator):
         return str(round(float(timeVal), 1)).rjust(9)
 
     def writeFile(self, test, cpuTime, realTime, fileName):
-        file = open(fileName, "w")
-        cpuLine = "CPU time   : " + self.timeString(cpuTime) + " sec. " + test.state.hostString() + "\n"
-        file.write(cpuLine)
-        if realTime is not None:
-            realLine = "Real time  : " + self.timeString(realTime) + " sec.\n"
-            file.write(realLine)
-        file.write(self.machineInfoFinder.getMachineInformation(test))
+        with plugins.openTestDataFile(fileName, test, "w") as file:
+            cpuLine = "CPU time   : " + self.timeString(cpuTime) + " sec. " + test.state.hostString() + "\n"
+            file.write(cpuLine)
+            if realTime is not None:
+                realLine = "Real time  : " + self.timeString(realTime) + " sec.\n"
+                file.write(realLine)
+            file.write(self.machineInfoFinder.getMachineInformation(test))
 
 # Relies on the config entry performance_logfile_extractor, so looks in the log file for anything reported
 # by the program
@@ -1243,9 +1244,8 @@ class ExtractPerformanceFiles(PerformanceFileCreator):
         return collatedfiles
 
     def saveFile(self, fileName, contents):
-        file = open(fileName, "w")
-        file.write(contents)
-        file.close()
+        with plugins.FileEncoding.forFile(fileName).open(fileName, "w") as file:
+            file.write(contents)
 
     def makeFileContents(self, test, values, fileStem):
         # Round to accuracy 0.01

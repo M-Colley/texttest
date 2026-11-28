@@ -495,13 +495,15 @@ class QueueSystem(local.QueueSystem):
             for f in sorted(files):
                 if f.endswith(".egg-link"):
                     path = os.path.join(root, f)
-                    newDir = open(path).read().splitlines()[0].strip()
+                    with open(path, encoding="utf-8", errors="replace") as linkFile:
+                        newDir = linkFile.read().splitlines()[0].strip()
                     setupDir = cls.findSetUpDirectory(newDir)
                     if setupDir and setupDir not in linkedDirs:
                         linkedDirs.append(setupDir)
                 elif f == "orig-prefix.txt":
                     path = os.path.join(root, f)
-                    newDir = open(path).read().strip()
+                    with open(path, encoding="utf-8", errors="replace") as linkFile:
+                        newDir = linkFile.read().strip()
                     # Don't try to synch the system Python!
                     if newDir != realPythonPrefix and newDir not in linkedDirs:
                         linkedDirs.append(newDir)

@@ -5,12 +5,13 @@ import sys
 
 def findLoggerNames(fileName, keyText="Logger"):
     result = []
-    for line in open(fileName):
-        if keyText in line:
-            words = line.split('"')
-            for i, word in enumerate(words):
-                if word not in result and i % 2 == 1:  # Only take odd ones, between the quotes!
-                    result.append(word)
+    with open(fileName, encoding="utf-8", errors="replace") as f:
+        for line in f:
+            if keyText in line:
+                words = line.split('"')
+                for i, word in enumerate(words):
+                    if word not in result and i % 2 == 1:  # Only take odd ones, between the quotes!
+                        result.append(word)
     result.sort()
     return result
 
@@ -28,7 +29,7 @@ def findLoggerNamesUnder(location, **kwargs):
 
 class PythonLoggingGenerator:
     def __init__(self, fileName, postfix="", prefix=""):
-        self.file = open(fileName, "w")
+        self.file = open(fileName, "w", encoding="utf-8")
         self.postfix = "." + postfix
         self.prefix = prefix
         self.handlers = {"stdout": "stdout"}
