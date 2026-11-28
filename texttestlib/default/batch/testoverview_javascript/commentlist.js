@@ -322,7 +322,7 @@ var appendSummary = function(container, dateStrings, entries)
 { 
       for (var i = 0; i < dateStrings.length; i++) {
 		  var summary = createSummary(dateStrings[i], entries);
-		  var table = $("<table><table>");
+		  var table = $("<table></table>");
 		  var row = $("<tr></tr>");
 		  var cell = $("<td></td>");
 		  var minwidther = node().css('width','350px');

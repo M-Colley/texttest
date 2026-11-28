@@ -207,7 +207,7 @@ var showToolTip = function(event, commentStr, authorStr, tdEventSource)
     var tooltipWidth = 250;
 
     var tooltip = $("#tooltip");
-    if (tooltip.size() == 0)
+    if (tooltip.length == 0)
     {
 	tooltip = createTooltip(tooltipHeight, tooltipWidth);
 	$(document.body).append(tooltip);
@@ -272,7 +272,7 @@ var updateComments = function(entries, grid)
 		// foreach test
 		var rowHeader = $("a[name='"+test.rawKey+"']").parent();
 
-		if (rowHeader.size() > 0)
+		if (rowHeader.length > 0)
 		{
 		    var column = grid.getCol(rowHeader, date);
 		    if (column > -1)
@@ -390,7 +390,7 @@ var appendCommentLinks = function(entries)
 	return count;
     };
 
-    $( $.find("th:contains('Test')") ).siblings().each( function() { 
+    $("th:contains('Test')").siblings().each( function() { 
 	$(this).find("[name='AllLink']").remove(); // Remove existing links
 
 	var date = $(this).text().split("\n")[0];
@@ -867,12 +867,12 @@ var setup = function() {
 		    
 		    // some capture magic
 		    var mouseUp = function() {
-			$(document.body).unbind("losecapture");
+			$(document.body).off("losecapture", mouseUp);
 			if (document.body.releaseCapture)
 			    document.body.releaseCapture();
 			selectionBuilder.endSelection() 
 		    };								
-		    $(document.body).bind("losecapture", mouseUp);
+		    $(document.body).on("losecapture", mouseUp);
 		    $(document.body).mouseup(mouseUp);
 		    
 		    if (document.body.setCapture)
