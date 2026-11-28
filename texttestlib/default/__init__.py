@@ -1411,6 +1411,8 @@ class Config:
                              "default": 0.0}, "Which relative tolerance to apply when comparing floating point values")
         app.setConfigDefault("floating_point_split", {
                              "default": ''}, "Separator to split at when comparing floating point values")
+        app.setConfigDefault("floating_point_pattern", {
+                             "default": []}, "Regular expression(s) specifying lines or capturing groups to apply floating point tolerance to")
 
         app.setConfigDefault("collate_file", self.getDefaultCollations(),
                              "Mapping of result file names to paths to collect them from")

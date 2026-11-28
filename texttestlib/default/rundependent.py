@@ -130,13 +130,18 @@ class FilterOnTempFile(FilterAction):
         floatTolerance = test.getCompositeConfigValue("floating_point_tolerance", stem)
         relTolerance = test.getCompositeConfigValue("relative_float_tolerance", stem)
         floatSplit = test.getCompositeConfigValue("floating_point_split", stem)
+        floatPatterns = test.getCompositeConfigValue("floating_point_pattern", stem)
         if floatTolerance or relTolerance:
             origFile = test.makeTmpFileName(stem + "." + app.name + "origcmp", forFramework=1)
             if not os.path.isfile(origFile):
                 origFile = test.getFileName(stem)
             if origFile and os.path.isfile(origFile):
                 encoding = plugins.getConfiguredFileEncoding(origFile, test)
-                filters.append(FloatingPointFilter(origFile, floatTolerance, relTolerance, floatSplit, encoding))
+                if floatPatterns:
+                    from texttestlib.default.fpfilter import PatternFloatingPointFilter
+                    filters.append(PatternFloatingPointFilter(origFile, floatTolerance, relTolerance, floatSplit, floatPatterns, encoding))
+                else:
+                    filters.append(FloatingPointFilter(origFile, floatTolerance, relTolerance, floatSplit, encoding))
         return filters
 
 
