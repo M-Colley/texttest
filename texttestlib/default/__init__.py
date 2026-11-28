@@ -95,7 +95,7 @@ class Config:
                 if useCatalogues:
                     self.addDefaultSwitch(group, "ignorecat", "Ignore catalogue file when isolating data", description="Treat test data identified by 'partial_copy_test_path' as if it were in 'copy_test_path', " +
                                           "i.e. copy everything without taking notice of the catalogue file. Useful when many things have changed with the files written by the test")
-                
+
                 db_pathnames = set()
                 for app in apps:
                     for pathName, dirName in app.getConfigValue("dbtext_database_path").items():
@@ -482,11 +482,11 @@ class Config:
 
     def usesCaptureMock(self, app):
         return "traffic" in app.defFileStems()
-    
+
     def captureMockHasClientServer(self, app):
         rcFile = os.path.join(app.getDirectory(), "capturemockrc." + app.name)
         return self.clientServerEnabled([ rcFile ]) if rcFile and os.path.isfile(rcFile) else False
-         
+
     def clientServerEnabled(self, rcFiles):
         # check for server_protocol being explicitly set
         parser = ConfigParser(strict=False)
@@ -1691,7 +1691,7 @@ class Config:
         app.addConfigEntry("builtin", self.getStdinName(namingScheme), "definition_file_stems")
         app.addConfigEntry("builtin", "knownbugs", "definition_file_stems")
         app.setConfigAlias("test_list_files_directory", "filter_file_directory")
-        
+
 
     def setApplicationDefaults(self, app):
         homeOS = app.getConfigValue("home_operating_system")

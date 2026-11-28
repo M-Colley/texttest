@@ -552,7 +552,7 @@ class SaveState(plugins.Responder):
             self.registerRunName(testStateRepository, suite.app)
 
     def addVarsToRunFile(self, f, envVars):
-        for envVar in envVars: 
+        for envVar in envVars:
             if envVar in os.environ:
                 f.write(envVar + "=" + os.getenv(envVar) + "\n")
             else:

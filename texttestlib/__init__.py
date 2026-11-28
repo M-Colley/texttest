@@ -13,7 +13,7 @@ def main():
             import capturemock
             capturemock.process_startup()  # doesn't do anything unless CAPTUREMOCK_PROCESS_START is set
         except Exception:
-            pass    
+            pass
     major, minor, micro = sys.version_info[:3]
     reqMajor, reqMinor, reqMicro = texttest_version.required_python_version
     if (major, minor, micro) >= texttest_version.required_python_version:

@@ -20,7 +20,7 @@ def _parseReply(json_dict, location, bugId):
     count = json_dict["count"]
     if count == 1:
         fields = json_dict["value"][0]["fields"]
-    
+
         ruler = "*" * 50
         message_rows = [ "\n" + ruler,
                          "Id: " + bugId,
@@ -35,9 +35,9 @@ def _parseReply(json_dict, location, bugId):
                          ruler,
                          "\nView bug " + bugId + " using AZ Devops URL=" \
                          + _makeURL(location, str(bugId)) + "\n"]
-    
+
         status = _encodeString(fields["System.State"])
-    
+
         message = "\n".join(message_rows)
         isResolved = status in [ "Done", "Ready for test", "Testing", "Rejected", "Removed" ]
         return status, message, isResolved, bugId
@@ -50,7 +50,7 @@ def findBugInfoWithoutLogin(bugId, location):
                      ruler,
                      "\nView bug " + bugId + " using AZ Devops URL=" \
                          + _makeURL(location, str(bugId)) + "\n" ]
-                     
+
     return "PAT not set", "\n".join(message_rows), False, bugId
 
 # For python2 this function contains locale related encoding that didn't work
@@ -66,7 +66,7 @@ def get_request_context():
         import certifi, ssl
         return ssl.create_default_context(cafile=certifi.where())
     except ModuleNotFoundError:
-        return 
+        return
 
 def _getJson(query_url, username, password):
     # Setting up password managers and using openers as described in the

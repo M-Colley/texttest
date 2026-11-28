@@ -90,9 +90,9 @@ class GitInterface(vcs_independent.VersionControlInterface):
             plugins.removePath(path)
             return retCode == 0
         except OSError:
-            # Git not installed, remove the file anyway. Git will work out what to do if installed in future. 
+            # Git not installed, remove the file anyway. Git will work out what to do if installed in future.
             return plugins.removePath(path)
-            
+
     def hasLocalCommits(self, vcsDirectory):
         retCode, _, stderr = self.getProcessResults(["git", "push", "-n"], cwd=vcsDirectory)
         return retCode == 0 and stderr.strip() != "Everything up-to-date"

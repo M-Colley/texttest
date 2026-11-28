@@ -35,10 +35,10 @@ class ExternalFormatResponder(plugins.Responder):
         self.appData = OrderedDict()
         self.startTimes = {}
         self.diag = logging.getLogger("JUnit Report Writer")
-        
+
     def useExternalFormat(self, app):
         return getExternalFormat(app) != "false"
-    
+
     def notifyLifecycleChange(self, test, dummyState, changeDesc):
         if changeDesc == "start" and self.useExternalFormat(test.app):
             self.startTimes[test] = datetime.now()
@@ -60,7 +60,7 @@ class ExternalFormatResponder(plugins.Responder):
                 if writerFormat != "false":
                     self.diag.info("writing results in " + writerFormat + " format for app " + app.fullName())
                     self.writeResults(app, writerFormat)
-                    
+
     def writeResults(self, app, writerFormat):
         results = self.appData[app].getResults()
         appResultsDir = self.createResultsDir(app, writerFormat)
@@ -75,13 +75,13 @@ class ExternalFormatResponder(plugins.Responder):
             testFileName = os.path.join(appResultsDir, testName + "." + fileExt)
             with open(testFileName, "w", encoding="utf-8") as f:
                 f.write(text)
-                
+
     def evaluate(self, result, outcome, writerFormat):
         try:
-            return Template(eval(writerFormat + "_" + outcome + "_template")).substitute(result)  
+            return Template(eval(writerFormat + "_" + outcome + "_template")).substitute(result)
         except NameError:
             return Template(eval(writerFormat + "_template")).substitute(result)
-              
+
     def createResultsDir(self, app, extFormat):
         resultsDir = getBatchExternalFolder(app, extFormat)
         if not os.path.exists(resultsDir):
@@ -90,7 +90,7 @@ class ExternalFormatResponder(plugins.Responder):
         if not os.path.exists(appResultsDir):
             os.mkdir(appResultsDir)
         return appResultsDir
-                    
+
     def _addApplication(self, test):
         app = test.app
         self.appData[app] = ExternalFormatApplicationData(self.runId)
@@ -105,7 +105,7 @@ class ExternalFormatApplicationData:
         self.runId = self.make_guid()
         self.runName = runName
         self.testResults = {}
-        
+
     def make_guid(self):
         return str(uuid.uuid4())
 
@@ -180,7 +180,7 @@ class ExternalFormatApplicationData:
         result["error_message"] = ""
         result["long_message"] = ""
         result["stack_trace"] = ""
-        
+
     def _failure(self, result, long_message, stack_trace):
         result["error"] = 0
         result["success"] = 0
@@ -197,7 +197,7 @@ class ExternalFormatApplicationData:
                 return escape(f.read())
         else:
             return ""
-                    
+
     def _shortMessage(self, test):
         return escape(test.state.getTypeBreakdown()[1])
 
@@ -272,7 +272,7 @@ junit_success_template = """\
   <properties/>
   <testcase name="$test_name" time="$time" classname="$suite_name"/>
 </testsuite>
-"""                
+"""
 
 trx_template = """\
 <?xml version="1.0" encoding="UTF-8"?>
@@ -346,20 +346,20 @@ class ExternalFormatCollector(plugins.Responder):
             writeFile = os.path.join(resultsDir, "all_tests." + fileExt)
             filesSoFar = allFiles.setdefault((writeFile, extFormat), [])
             filesSoFar += currFiles
-            
+
         for (targetFn, extFormat), sourceFns in allFiles.items():
             plugins.log.info("Creating " + targetFn + " in " + extFormat + " format from " + repr(len(sourceFns)) + " source files.")
             if len(sourceFns) > 0:
                 self.combineFiles(sourceFns, targetFn, extFormat)
-                
+
     @classmethod
     def getFormatTagInfo(cls, extFormat):
         if extFormat == "trx":
             return {"Counters" : {}, "ResultSummary" : {}}, ("GenericTestResult", "GenericTest", "TestEntry")
         elif extFormat == "jetbrains":
             return {'count name="total"' : {}, 'count name="failed"': {}, 'count name="passed"': {}}, ("test",)
-                
-    @classmethod     
+
+    @classmethod
     def combineFiles(cls, sourceFns, targetFn, extFormat):
         entries = {}
         summaryTags, entryTags = cls.getFormatTagInfo(extFormat)
@@ -378,7 +378,7 @@ class ExternalFormatCollector(plugins.Responder):
                         else:
                             entryTag, tagClosed = cls.getEntryTag(line, entryTags)
                             if entryTag:
-                                currTag = entryTag                         
+                                currTag = entryTag
                     if currTag:
                         entries[currTag] = entries.get(currTag, "") + rawline
                     if tagClosed:
@@ -395,7 +395,7 @@ class ExternalFormatCollector(plugins.Responder):
                         summaryLine = summaryTag + " " + cls.getSummaryLine(summaryDict)
                         wf.write(rawline.replace(line, summaryLine))
                         continue
-                    
+
                     entryTag, closed = cls.getEntryTag(rawline.strip(), entryTags)
                     if entryTag:
                         currTag = None if closed else entryTag
@@ -404,7 +404,7 @@ class ExternalFormatCollector(plugins.Responder):
                             wf.write(entry)
                     elif currTag is None:
                         wf.write(rawline)
-                   
+
     @classmethod
     def getEntryTag(cls, line, entryTags):
         for entryTag in entryTags:
@@ -413,15 +413,15 @@ class ExternalFormatCollector(plugins.Responder):
             elif line.startswith("</" + entryTag + ">"):
                 return entryTag, True
         return None, False
-                        
+
     @classmethod
     def getSummaryInfo(cls, line, summaryTags):
         for summaryTag, summaryDict in summaryTags.items():
             if line.startswith(summaryTag):
                 return summaryTag, summaryDict
         return None, None
-             
-    @classmethod           
+
+    @classmethod
     def updateSummary(cls, summary, words):
         for word in words:
             key, rawValue = word.split("=")
@@ -437,9 +437,8 @@ class ExternalFormatCollector(plugins.Responder):
             else:
                 # prefer error to failure to success, happens to be alphabetic
                 summary[key] = min(oldValue, value)
-                            
+
     @classmethod
     def getSummaryLine(cls, data):
         texts = [ key + '="' + str(value) + '"' for key, value in data.items() ]
         return " ".join(texts)
-            

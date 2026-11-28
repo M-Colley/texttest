@@ -903,7 +903,7 @@ def getNewTestStateFromFile(file):
         file.seek(0)
         unpickler = TestStateUnpickler(BytesIO(file.read().replace(b"\r\n", b"\n")), encoding=encoding, errors="replace")
         return unpickler.load()
-    
+
 
 log = None
 
@@ -980,7 +980,7 @@ def copyEnvironment(values={}, ignoreVars=[]):
 def getInterpreter(executable):
     if "." not in executable:
         return ""
-    
+
     extension = executable.rsplit(".", 1)[-1]
     cache = {"py": "py -3" if os.name == "nt" else "python",
              "rb": "ruby",

@@ -130,7 +130,7 @@ class DocumentConfig(plugins.ScriptWithArgs):
         if "entries" in argDict:
             self.onlyEntries = argDict["entries"].split(",")
         self.overrideOs = argDict.get("os") if "os" in argDict else None
-        
+
     def getEntriesToUse(self, app):
         if len(self.onlyEntries) > 0:
             return self.onlyEntries

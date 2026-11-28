@@ -39,7 +39,7 @@ class VersionControlInterface:
                     return True
             return False
         except plugins.TextTestError:
-            # Version control not installed, cannot be used. 
+            # Version control not installed, cannot be used.
             return False
 
     def getFileStatus(self, basicArgs, file):

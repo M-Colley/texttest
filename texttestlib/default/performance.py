@@ -81,7 +81,7 @@ def parseTimeExpression(timeExpression):
     if timeExpression.startswith(">"):
         return ">", plugins.getNumberOfSeconds(timeExpression[1:])
     else:
-        raise plugins.TextTestError("Could not parse time expression '" + timeExpression + 
+        raise plugins.TextTestError("Could not parse time expression '" + timeExpression +
                                     "' : all expressions must begin with '<' or '>'.")
 
 
@@ -194,7 +194,7 @@ class PerformanceFileComparison(FileComparison):
     def saveResults(self, tmpFile, destFile):
         # Here we save the average of the old and new performance, assuming fluctuation
         avgPerformance = self.perfComparison.getAverage()
-        self.diag.info("Found average performance = " + str(avgPerformance) + 
+        self.diag.info("Found average performance = " + str(avgPerformance) +
                        ", new performance = " + str(self.perfComparison.newPerformance))
         line = open(tmpFile).readlines()[0]
         lineToWrite = line.replace(str(self.perfComparison.newPerformance), str(avgPerformance))
@@ -316,7 +316,7 @@ class TimeGroupFilter(plugins.Filter):
         testPerfDict = self.makePerformanceDictionary(tests)
         sortedTestPerfDict = sorted(testPerfDict, key=cmp_to_key(lambda test1, test2: self.comparePerformance(testPerfDict[test1], testPerfDict[test2])))
         return sortedTestPerfDict[:self.testCount]
-    
+
     def comparePerformance(self, perf1, perf2):
         return 0
 

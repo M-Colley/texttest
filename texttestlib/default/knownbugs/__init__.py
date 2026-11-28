@@ -138,7 +138,7 @@ class BugTrigger:
         if bugSystem:
             return BugSystemBug(bugSystem, getOption("bug_id"), prioStr, rerunCount, rerunOnly, allowAllRerunsFail)
         else:
-            return UnreportedBug(getOption("full_description"), getOption("brief_description"), 
+            return UnreportedBug(getOption("full_description"), getOption("brief_description"),
                                  self.reportInternalError, prioStr, rerunCount, rerunOnly, allowAllRerunsFail)
 
     def matchesText(self, line):

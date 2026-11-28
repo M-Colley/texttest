@@ -15,7 +15,7 @@ def interpretCore(corefile):
     if os.path.getsize(corefile) == 0:
         details = "Core file of zero size written - Stack trace not produced for crash\nCheck your coredumpsize limit"
         return "Empty core file", details, None
-    
+
     binary = getBinary(corefile)
     if not os.path.isfile(binary):
         details = "Could not find binary name '" + binary + "' from core file : Stack trace not produced for crash"
@@ -56,7 +56,7 @@ def getLastFileName(corefile):
     if os.path.isfile(localName):
         return localName
 
-    localRegexp = localName 
+    localRegexp = localName
     if not os.path.isabs(localName):
         localRegexp = "/.*/" + localName
 
@@ -71,7 +71,7 @@ def getLastFileName(corefile):
         return possibleNames[0].strip()
     else:
         return ""
-    
+
 def getBinary(corefile):
     binary = getLastFileName(corefile)
     if os.path.isfile(binary):
@@ -116,11 +116,11 @@ def parseGdbOutput(output):
             else:
                 stackLines.append(methodName)
         prevLine = line
-        
+
     if len(stackLines) > 1:
         signalDesc += " in " + getGdbMethodName(stackLines[0])
 
-    return signalDesc, summaryLine, stackLines    
+    return signalDesc, summaryLine, stackLines
 
 def parseDbxOutput(output):
     summaryLine = ""
@@ -141,8 +141,8 @@ def parseDbxOutput(output):
 
     if len(stackLines) > 1:
         signalDesc += " in " + stackLines[0].strip()
-        
-    return signalDesc, summaryLine, stackLines    
+
+    return signalDesc, summaryLine, stackLines
 
 def getGdbMethodName(line):
     endPos = line.rfind("(")
@@ -215,7 +215,7 @@ def main():
         corefile = sys.argv[1]
         if os.path.isfile(corefile):
             printCoreInfo(corefile)
-        else:    
+        else:
             sys.stderr.write("File not found : " + corefile + "\n")
 
 if __name__ == "__main__":

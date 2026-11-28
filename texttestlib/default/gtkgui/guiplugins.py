@@ -799,7 +799,7 @@ class OptionGroupGUI(ActionGUI):
         hbox.pack_start(checkButton, False, False, 0)
         hbox.show_all()
         return hbox
-        
+
     def createComboBoxEntry(self, option):
         # may need review MB 2018-12-04
         combobox = Gtk.ComboBoxText.new_with_entry()
@@ -831,7 +831,7 @@ class OptionGroupGUI(ActionGUI):
                 widget = Gtk.SpinButton.new(adjustment, 0., digits)
                 widget.set_numeric(True)
                 widget.connect("scroll_event", self.stopScrollInSpinButton)
-        
+
                 entry = widget
             elif option.usePossibleValues():
                 widget, entry = self.createComboBoxEntry(option)
