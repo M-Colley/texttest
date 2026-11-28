@@ -7,6 +7,7 @@ import logging
 import re
 from texttestlib import plugins
 from shutil import copyfile
+from .imagecompare import isImageFile, compareImages, describeImageFile
 
 from fnmatch import fnmatch
 
@@ -35,6 +36,9 @@ class FileComparison:
         # chosen to use a manually created list instead.
         self.binaryFile = test.configValueMatches("binary_file", stemForConfig)
         self.configuredEncoding = test.getCompositeConfigValue("file_encoding", stemForConfig) or "locale"
+        self.floatTolerance = test.getCompositeConfigValue("floating_point_tolerance", stemForConfig) or 0.0
+        self.relFloatTolerance = test.getCompositeConfigValue("relative_float_tolerance", stemForConfig) or 0.0
+        self.imageDiffSummary = None
         self.previewGenerator = plugins.PreviewGenerator(maxWidth, maxLength)
         self.textDiffTool = test.getConfigValue("text_diff_program")
         self.textDiffToolMaxSize = plugins.parseBytes(test.getCompositeConfigValue("max_file_size", self.textDiffTool))
@@ -251,10 +255,24 @@ class FileComparison:
             self.tmpCmpFile = tmpCmpFileName
 
     def updateDifferenceCache(self, valueForEqual):
+        self.imageDiffSummary = None
         if self.stdCmpFile and self.tmpCmpFile:
             if filecmp.cmp(self.stdCmpFile, self.tmpCmpFile, 0):
                 if self.differenceCache != self.APPROVED:
                     self.differenceCache = valueForEqual
+            elif not self.binaryFile and isImageFile(self.stdCmpFile) and isImageFile(self.tmpCmpFile):
+                same, summary = compareImages(
+                    self.stdCmpFile,
+                    self.tmpCmpFile,
+                    getattr(self, "floatTolerance", 0.0),
+                    getattr(self, "relFloatTolerance", 0.0),
+                )
+                if same:
+                    if self.differenceCache != self.APPROVED:
+                        self.differenceCache = valueForEqual
+                else:
+                    self.imageDiffSummary = summary
+                    self.differenceCache = self.DIFFERENT
             else:
                 self.differenceCache = self.DIFFERENT
             self.diag.info("Caching differences " + repr(self.stdCmpFile) + " " +
@@ -300,9 +318,15 @@ class FileComparison:
                       "Edit the configuration entry 'binary_file' and re-run if you suspect that this file contains only text.\n"
             return self.previewGenerator.getWrappedLine(message)
         elif self.newResult():
+            if isImageFile(self.tmpCmpFile):
+                return describeImageFile(self.tmpCmpFile, "New")
             return self.getPreview(self.tmpCmpFile)
         elif self.missingResult():
+            if isImageFile(self.stdCmpFile):
+                return describeImageFile(self.stdCmpFile, "Missing")
             return self.getPreview(self.stdCmpFile)
+        elif getattr(self, "imageDiffSummary", None):
+            return self.imageDiffSummary
 
         try:
             stdFileSize = os.path.getsize(self.stdCmpFile)
