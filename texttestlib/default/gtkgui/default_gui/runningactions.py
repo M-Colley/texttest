@@ -1210,8 +1210,43 @@ class InsertShortcuts(RunScriptAction, guiplugins.OptionGroupGUI):
             app.getConfigValue("use_case_recorder") != "none"
 
 
+class ExtractTests(guiplugins.ActionDialogGUI):
+    def __init__(self, *args):
+        guiplugins.ActionDialogGUI.__init__(self, *args)
+        self.extractedCount = 0
+        self.targetRoot = ""
+        self.addOption("dir", "Directory to extract tests into", os.getcwd(), selectDir=True)
+
+    def _getTitle(self):
+        return "Extract Tests..."
+
+    def getTooltip(self):
+        return "Extract standalone test sandbox and run script to a directory"
+
+    def getDialogTitle(self):
+        return "Extract Standalone Test Sandbox"
+
+    def isActiveOnCurrent(self, *args):
+        return guiplugins.ActionDialogGUI.isActiveOnCurrent(self, *args) and len(self.getTestCaseSelection()) > 0
+
+    def performOnCurrent(self):
+        from texttestlib.default.extracttest import extractTest
+        destDir = self.optionGroup.getOptionValue("dir")
+        if not destDir:
+            raise plugins.TextTestError("Must specify a directory to extract tests into")
+        tests = self.getTestCaseSelection()
+        for test in tests:
+            subName = test.getRelPath() if len(tests) > 1 else test.name
+            extractTest(test, os.path.join(destDir, subName))
+        self.extractedCount = len(tests)
+        self.targetRoot = destDir
+
+    def messageAfterPerform(self):
+        return "Extracted " + plugins.pluralise(self.extractedCount, "test") + " to " + self.targetRoot + "."
+
+
 def getInteractiveActionClasses(dynamic):
     if dynamic:
-        return [RerunTests, ReloadTests]
+        return [RerunTests, ReloadTests, ExtractTests]
     else:
-        return [RunTests, RecordTest, ReconnectToTests, ReplaceText, ShowFilters, TestFileFiltering, InsertShortcuts]
+        return [RunTests, RecordTest, ReconnectToTests, ReplaceText, ShowFilters, TestFileFiltering, InsertShortcuts, ExtractTests]

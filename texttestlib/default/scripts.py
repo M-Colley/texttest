@@ -573,3 +573,24 @@ class FilterUIMapFile(plugins.ScriptWithArgs):
                     writeParser.set(section, actionName, eventName)
         print("Updating UI map file...")
         writeParser.write(open(uiMapFile, "w"))
+
+
+class ExtractTest(plugins.ScriptWithArgs):
+    """Extract selected tests into standalone sandbox directories with launcher scripts."""
+
+    def __init__(self, args=[""]):
+        argDict = self.parseArguments(args, ["dir", "flat"])
+        self.destDir = argDict.get("dir") or os.getcwd()
+        self.flat = argDict.get("flat") == "1"
+
+    def __repr__(self):
+        return "Extracting sandbox for"
+
+    def __call__(self, test):
+        from .extracttest import extractTest
+        targetDir = self.destDir if self.flat else os.path.join(self.destDir, test.getRelPath())
+        extractTest(test, targetDir)
+        self.describe(test, " -> " + targetDir)
+
+    def setUpSuite(self, suite):
+        self.describe(suite)

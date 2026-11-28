@@ -32,6 +32,8 @@
       <menuitem action="Select"/>
       <menuitem action="Filter"/>
       <separator/>
+      <menuitem action="Extract Tests..."/>
+      <separator/>
     </menu>
  
     <placeholder name="ExtraMenus" />
@@ -55,6 +57,8 @@
   </toolbar>
 
   <popup name="TestPopupMenu">
+    <menuitem action="Extract Tests..."/>
+    <separator/>
   </popup>
 
   <popup name="TestFilePopupMenu">
