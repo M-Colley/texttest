@@ -877,10 +877,43 @@ class OptionGroupGUI(ActionGUI):
             dialog.set_current_folder(currDir)
         elif defaultFolder and os.path.isdir(os.path.abspath(defaultFolder)):
             dialog.set_current_folder(os.path.abspath(defaultFolder))
-        for folder in folders:
-            dialog.add_shortcut_folder(folder)
+        self.addShortcutFolders(dialog, folders)
+        dialog.set_local_only(os.name != "nt")
         dialog.set_default_response(Gtk.ResponseType.OK)
         dialog.show()
+
+    def getWindowsDriveFolders(self):
+        if os.name != "nt":
+            return []
+        try:
+            import ctypes
+            kernel32 = ctypes.windll.kernel32
+            bitmask = kernel32.GetLogicalDrives()
+        except Exception:
+            return []
+        drives = []
+        for idx in range(26):
+            if bitmask & (1 << idx):
+                drive = chr(ord("A") + idx) + ":\\"
+                try:
+                    driveType = kernel32.GetDriveTypeW(drive)
+                except Exception:
+                    driveType = 3
+                if driveType in (2, 3, 4, 6):
+                    drives.append(drive)
+        return drives
+
+    def addShortcutFolders(self, chooser, folders):
+        seen = set()
+        for folder in list(folders) + self.getWindowsDriveFolders():
+            normFolder = os.path.normcase(os.path.abspath(folder))
+            if normFolder in seen:
+                continue
+            seen.add(normFolder)
+            try:
+                chooser.add_shortcut_folder(folder)
+            except Exception:
+                pass  # Ignore duplicate shortcuts or unreachable network shares
 
     def respondFileChooser(self, dialog, response, entry):
         if response == Gtk.ResponseType.OK:
@@ -1205,11 +1238,7 @@ class ActionDialogGUI(OptionGroupGUI):
         # We want a filechooser dialog to let the user choose where, and
         # with which name, to save the selection.
         fileChooser.set_current_folder(startFolder)
-        for folder in folders:
-            try:
-                fileChooser.add_shortcut_folder(folder)
-            except GObject.GError:
-                pass  # Get this if the folder is already added, e.g. if it's the home directory
+        self.addShortcutFolders(fileChooser, folders)
 
         if option.selectFile and self.set_filename_is_working():
             if option.getValue():
@@ -1219,7 +1248,7 @@ class ActionDialogGUI(OptionGroupGUI):
                 if value:
                     fileChooser.set_filename(value)
 
-        fileChooser.set_local_only(True)
+        fileChooser.set_local_only(os.name != "nt")
         return fileChooser
 
     def set_filename_is_working(self):
