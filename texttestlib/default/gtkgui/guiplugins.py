@@ -5,7 +5,7 @@ import subprocess
 import types
 import logging
 import sys
-from . import entrycompletion
+from . import entrycompletion, iconnames
 from texttestlib import plugins
 from .guiutils import guiConfig, SubGUI, GUIConfig, createApplicationEvent
 from texttestlib.jobprocess import killProcessAndChildren
@@ -115,8 +115,8 @@ class GtkActionWrapper:
         self.diag = logging.getLogger("Interactive Actions")
         title = self.getTitle(includeMnemonics=True)
         actionName = self.getActionName()
-        self.gtkAction = Gtk.Action(actionName, title,
-                                    self.getTooltip(), self.getStockId())
+        self.gtkAction = Gtk.Action(name=actionName, label=title,
+                                    tooltip=self.getTooltip(), icon_name=self.getIconName())
         self.gtkAction.connect("activate", self.runInteractive)
         if not self.isActiveOnCurrent():
             self.gtkAction.set_property("sensitive", False)
@@ -222,6 +222,9 @@ class BasicActionGUI(SubGUI, GtkActionWrapper):
         if stockId:
             return "gtk-" + stockId
 
+    def getIconName(self):  # The themed icon name corresponding to the stock ID
+        return iconnames.getIconName(self.getStockId())
+
     def _getStockId(self):  # The stock ID for the action, in toolbar and menu.
         pass
 
@@ -248,7 +251,7 @@ class BasicActionGUI(SubGUI, GtkActionWrapper):
         textView.set_right_margin(5)
         hbox = Gtk.HBox()
         imageBox = Gtk.VBox()
-        imageBox.pack_start(Gtk.Image.new_from_stock(stockIcon, Gtk.IconSize.DIALOG), False, True, 0)
+        imageBox.pack_start(Gtk.Image.new_from_icon_name(iconnames.getIconName(stockIcon), Gtk.IconSize.DIALOG), False, True, 0)
         hbox.pack_start(imageBox, False, True, 0)
         scrolledWindow = Gtk.ScrolledWindow()
         # What we would like is that the dialog expands without scrollbars
@@ -499,8 +502,9 @@ class ActionGUI(BasicActionGUI):
         # needs review MB 2018-12-05
         button.set_related_action(action)
         # In theory all this should be automatic, but it appears not to work
-        if self.getStockId():
-            image = Gtk.Image.new_from_stock(self.getStockId(), Gtk.IconSize.BUTTON)
+        iconName = self.getIconName()
+        if iconName:
+            image = Gtk.Image.new_from_icon_name(iconName, Gtk.IconSize.BUTTON)
             button.set_image(image)
             image.show()
 

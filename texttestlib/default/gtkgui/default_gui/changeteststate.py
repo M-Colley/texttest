@@ -56,8 +56,8 @@ class ApproveTests(BackgroundThreadHelper, guiplugins.ActionDialogGUI):
     def __init__(self, allApps, *args):
         guiplugins.ActionDialogGUI.__init__(self, allApps, *args)
         self.directAccel = None
-        self.directAction = Gtk.Action("Approve", "_Approve",
-                                       self.getDirectTooltip(), self.getStockId())
+        self.directAction = Gtk.Action(name="Approve", label="_Approve",
+                                       tooltip=self.getDirectTooltip(), icon_name=self.getIconName())
         self.directAction.connect("activate", self._respond)
         self.directAction.set_property("sensitive", False)
         self.addOption("v", "Version to approve", self.defaultVersionStr)

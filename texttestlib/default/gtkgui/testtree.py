@@ -3,7 +3,7 @@
 Code associated with the left-hand tree view for tests 
 """
 from gi.repository import Gtk, GObject, Pango
-from . import guiutils
+from . import guiutils, iconnames
 import logging
 from texttestlib import plugins
 from collections import OrderedDict
@@ -325,7 +325,7 @@ class TestTreeGUI(guiutils.ContainerGUI):
             detailsColumn.pack_start(recalcRenderer, False)
             detailsColumn.add_attribute(detailsRenderer, 'text', 3)
             detailsColumn.add_attribute(detailsRenderer, 'background', 4)
-            detailsColumn.add_attribute(recalcRenderer, 'stock_id', 6)
+            detailsColumn.add_attribute(recalcRenderer, 'icon-name', 6)
             detailsColumn.set_resizable(True)
             guiutils.addRefreshTips(self.treeView, "test", recalcRenderer, detailsColumn, 6)
             self.treeView.append_column(detailsColumn)
@@ -419,7 +419,7 @@ class TestTreeGUI(guiutils.ContainerGUI):
 
     def getRecalculationIcon(self, recalc):
         if recalc:
-            return "gtk-refresh"
+            return iconnames.getIconName("gtk-refresh")
         else:
             return ""
 

@@ -7,7 +7,7 @@ import shutil
 import tempfile
 from gi.repository import Gtk, Gdk, GObject
 from texttestlib import plugins
-from .. import guiplugins, guiutils, entrycompletion
+from .. import guiplugins, guiutils, entrycompletion, iconnames
 from ..default_gui import adminactions, changeteststate
 from . import custom_widgets
 
@@ -514,7 +514,7 @@ class VersionControlDialogGUI(BasicVersionControlDialogGUI):
 
     def getStockIcon(self, stockItem):
         imageBox = Gtk.VBox()
-        imageBox.pack_start(Gtk.Image.new_from_stock(stockItem, Gtk.IconSize.DIALOG), False, True, 0)
+        imageBox.pack_start(Gtk.Image.new_from_icon_name(iconnames.getIconName(stockItem), Gtk.IconSize.DIALOG), False, True, 0)
         return imageBox
 
     def addTreeView(self):

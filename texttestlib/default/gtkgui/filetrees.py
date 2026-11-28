@@ -142,7 +142,7 @@ class FileViewGUI(guiutils.SubGUI):
             column.pack_start(recalcRenderer, False)
             column.add_attribute(renderer, 'text', 4)
             column.add_attribute(renderer, 'background', 1)
-            column.add_attribute(recalcRenderer, 'stock_id', 5)
+            column.add_attribute(recalcRenderer, 'icon-name', 5)
             return column, recalcRenderer
         else:
             return None, None

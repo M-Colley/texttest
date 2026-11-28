@@ -38,8 +38,8 @@ class SelectTests(guiplugins.ActionTabGUI, AllTestsHandler):
         AllTestsHandler.__init__(self)
         self.dynamic = dynamic
         self.filterAccel = None
-        self.filterAction = Gtk.Action("Filter", "Filter",
-                                       self.getFilterTooltip(), self.getStockId())
+        self.filterAction = Gtk.Action(name="Filter", label="Filter",
+                                       tooltip=self.getFilterTooltip(), icon_name=self.getIconName())
         self.filterAction.connect("activate", self.filterTests)
         self.selectDiag = logging.getLogger("Select Tests")
         self.addOption("vs", "Tests for version", description="Select tests for a specific version.",
