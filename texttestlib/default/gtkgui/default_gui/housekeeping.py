@@ -318,9 +318,90 @@ class ShowProcesses(guiplugins.ActionResultDialogGUI):
         return "Show Processes"
 
 
+class PauseTests(guiplugins.BasicActionGUI):
+    def __init__(self, *args):
+        guiplugins.BasicActionGUI.__init__(self, *args)
+        self.paused = False
+        self.completed = False
+
+    def _getStockId(self):
+        return "media-pause"
+
+    def _getTitle(self):
+        return "_Pause"
+
+    def getTooltip(self):
+        return "Pause starting new tests while letting running tests finish"
+
+    def isActiveOnCurrent(self, *args):
+        return not self.paused and not self.completed
+
+    def getSignalsSent(self):
+        return ["Pause"]
+
+    def messageAfterPerform(self):
+        pass
+
+    def performOnCurrent(self):
+        self.paused = True
+        self.setSensitivity(False)
+        self.notify("Pause")
+
+    def notifyContinue(self, *args):
+        self.paused = False
+        if not self.completed:
+            self.setSensitivity(True)
+
+    def notifyAllComplete(self, *args):
+        self.completed = True
+        self.setSensitivity(False)
+
+
+class ContinueTests(guiplugins.BasicActionGUI):
+    def __init__(self, *args):
+        guiplugins.BasicActionGUI.__init__(self, *args)
+        self.paused = False
+        self.completed = False
+
+    def _getStockId(self):
+        return "media-play"
+
+    def _getTitle(self):
+        return "_Continue"
+
+    def getTooltip(self):
+        return "Continue starting queued tests"
+
+    def isActiveOnCurrent(self, *args):
+        return self.paused and not self.completed
+
+    def getSignalsSent(self):
+        return ["Continue"]
+
+    def messageAfterPerform(self):
+        pass
+
+    def performOnCurrent(self):
+        self.paused = False
+        self.setSensitivity(False)
+        self.notify("Continue")
+
+    def notifyPause(self, *args):
+        if not self.completed:
+            self.paused = True
+            self.setSensitivity(True)
+
+    def notifyAllComplete(self, *args):
+        self.completed = True
+        self.paused = False
+        self.setSensitivity(False)
+
+
 def getInteractiveActionClasses(dynamic):
     classes = [Quit, SetRunName, ShowProcesses]
     if dynamic:
+        classes.append(PauseTests)
+        classes.append(ContinueTests)
         classes.append(ViewScreenshots)
         classes.append(GenerateTestSummary)
     else:

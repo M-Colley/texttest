@@ -12,6 +12,8 @@
    
     <menu action="actionsmenu">
       <menuitem action="Kill"/>
+      <menuitem action="Pause"/>
+      <menuitem action="Continue"/>
       <menuitem action="Mark"/>
       <menuitem action="Unmark"/>
       <menuitem action="Load from Rerun"/>
@@ -32,6 +34,8 @@
   <toolbar name="MainToolBar">
     <toolitem action="Quit"/>
     <toolitem action="Kill"/>
+    <toolitem action="Pause"/>
+    <toolitem action="Continue"/>
     <toolitem action="Approve"/>
     <separator/>
   </toolbar>

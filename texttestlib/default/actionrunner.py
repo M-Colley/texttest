@@ -5,7 +5,7 @@ import types
 from texttestlib import plugins
 from queue import Queue, Empty
 from collections import OrderedDict
-from threading import Lock
+from threading import Lock, Event
 
 plugins.addCategory("cancelled", "cancelled", "were cancelled before starting")
 
@@ -27,6 +27,9 @@ class BaseActionRunner(plugins.Responder, plugins.Observable):
         self.optionMap = optionMap
         self.testQueue = Queue()
         self.exited = False
+        self.paused = False
+        self.resumeEvent = Event()
+        self.resumeEvent.set()
         self.allComplete = False
         self.lock = Lock()
         self.killSignal = None
@@ -48,7 +51,27 @@ class BaseActionRunner(plugins.Responder, plugins.Observable):
     def notifyComplete(self, test):
         if not self.exited and "stop" in self.optionMap and test.state.hasFailed():
             self.exited = True
+            self.paused = False
+            self.resumeEvent.set()
             self.cancelFreeText = "Test run was cancelled due to previous failure of test " + test.getRelPath()
+
+    def notifyPause(self, *args):
+        if not self.allComplete and not self.exited:
+            self.paused = True
+            self.resumeEvent.clear()
+            self.diag.info("Pausing test execution before next test")
+            self.notify("Status", "Paused starting new tests.")
+
+    def notifyContinue(self, *args):
+        if self.paused:
+            self.paused = False
+            self.resumeEvent.set()
+            self.diag.info("Resuming test execution")
+            self.notify("Status", "Continued test execution.")
+
+    def waitWhilePaused(self):
+        if not self.exited:
+            self.resumeEvent.wait()
 
     def runAllTests(self):
         self.runQueue(self.getTestForRun, self.runTest, "running")
@@ -57,6 +80,8 @@ class BaseActionRunner(plugins.Responder, plugins.Observable):
 
     def notifyAllComplete(self):
         self.allComplete = True
+        self.paused = False
+        self.resumeEvent.set()
 
     def notifyKill(self, test):
         self.lock.acquire()
@@ -73,6 +98,8 @@ class BaseActionRunner(plugins.Responder, plugins.Observable):
         self.notify("Status", "Killing all running tests ...")
         self.killSignal = sig
         self.exited = True
+        self.paused = False
+        self.resumeEvent.set()
         self.killTests()
         self.notify("Status", "Killed all running tests.")
         self.lock.release()
@@ -88,10 +115,14 @@ class BaseActionRunner(plugins.Responder, plugins.Observable):
 
     def runQueue(self, getMethod, runMethod, desc, block=True):
         while True:
+            if not block and self.paused and not self.exited:
+                break
+            self.waitWhilePaused()
             test = getMethod(block)
             if not test:  # completed normally
                 break
 
+            self.waitWhilePaused()
             if self.exited:
                 self.cancel(test)
                 self.diag.info("Cancelled " + desc + " " + test.uniqueName)
@@ -101,6 +132,8 @@ class BaseActionRunner(plugins.Responder, plugins.Observable):
                 self.diag.info("Completed " + desc + " " + test.uniqueName)
 
     def getItemFromQueue(self, queue, block, replaceTerminators=False):
+        if not block and self.paused and not self.exited:
+            return
         try:
             item = queue.get(block=block)
             if replaceTerminators and item is None:
