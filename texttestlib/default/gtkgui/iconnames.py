@@ -31,6 +31,7 @@ stockIconNames = {
     "gtk-index": ("view-list",),
     "gtk-info": ("dialog-information",),
     "gtk-italic": ("format-text-italic",),
+    "gtk-media-pause": ("media-playback-pause",),
     "gtk-media-play": ("media-playback-start",),
     "gtk-media-record": ("media-record",),
     "gtk-new": ("document-new",),
