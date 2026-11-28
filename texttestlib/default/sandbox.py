@@ -851,16 +851,15 @@ class CollateFiles(plugins.Action):
             return testDir, existingPaths
 
     def runCollationScript(self, args, test, stdin, stdout, stderr):
-        # Windows isn't clever enough to know how to run Python/Java programs without some help...
-        if os.name == "nt":
-            interpreter = plugins.getInterpreter(args[0])
-            if interpreter:
-                args = plugins.splitcmd(interpreter) + args
-
         try:
             runEnv = test.getRunEnvironment()
             libexecPaths = [os.path.join(p, "libexec") for p in plugins.installationRoots]
             runEnv["PATH"] += os.pathsep + os.pathsep.join(libexecPaths)
+            # Windows isn't clever enough to know how to run Python/Java programs without some help...
+            if os.name == "nt":
+                interpreter = plugins.getInterpreter(args[0], env=runEnv)
+                if interpreter:
+                    args = plugins.splitcmd(interpreter) + args
             return subprocess.Popen(args, env=runEnv,
                                     stdin=stdin, stdout=stdout, stderr=stderr,
                                     cwd=test.getDirectory(temporary=1))

@@ -977,12 +977,54 @@ def copyEnvironment(values={}, ignoreVars=[]):
     return values
 
 
-def getInterpreter(executable):
+def isWindowsAppsStub(path):
+    norm = path.replace("/", "\\").lower()
+    if "\\microsoft\\windowsapps\\" in norm:
+        try:
+            return os.path.getsize(path) == 0
+        except OSError:
+            return True
+    return False
+
+
+def findPythonOnPath(searchPath):
+    import shutil
+    for part in (searchPath or "").split(os.pathsep):
+        part = part.strip('"')
+        if not part:
+            continue
+        found = shutil.which("python", path=part)
+        if found and not isWindowsAppsStub(found):
+            return found
+    return None
+
+
+def formatWindowsPythonPath(path):
+    if " " in path and "Program Files" not in path:
+        return '"' + path + '"'
+    return path
+
+
+def getWindowsPythonInterpreter(env=None):
+    import shutil
+    searchPath = (env if env is not None else os.environ).get("PATH", "")
+    foundOnPath = findPythonOnPath(searchPath)
+    if foundOnPath:
+        firstWhich = shutil.which("python", path=searchPath)
+        if firstWhich and firstWhich.replace("/", "\\").lower() == foundOnPath.replace("/", "\\").lower():
+            return "python"
+        return formatWindowsPythonPath(foundOnPath)
+    if not getattr(sys, "frozen", False) and sys.executable and "python" in os.path.basename(sys.executable).lower():
+        return formatWindowsPythonPath(sys.executable)
+    return "py -3"
+
+
+def getInterpreter(executable, env=None):
     if "." not in executable:
         return ""
     
     extension = executable.rsplit(".", 1)[-1]
-    cache = {"py": "py -3" if os.name == "nt" else "python",
+    cache = {"py": getWindowsPythonInterpreter(env) if os.name == "nt" else "python",
              "rb": "ruby",
              "jar": "java -jar"}
     return cache.get(extension, "")
