@@ -249,6 +249,10 @@ class SummaryDataFinder:
         mostRecent = set()
         for envData, lastInfoList in list(allInfo.items()):
             mostRecent.add(max(lastInfoList, key=self.getDateTagKey))
+        if len(mostRecent) > 1:
+            mostRecentDate = self.toDate(max(mostRecent, key=self.getDateTagKey)[0])
+            oneDay = datetime.timedelta(days=1)
+            mostRecent = set((info for info in mostRecent if mostRecentDate - self.toDate(info[0]) <= oneDay))
         return sorted(mostRecent, key=self.getDateTagKey)
 
     def getDateTagKey(self, info):
@@ -421,12 +425,21 @@ class SummaryGenerator:
             text += " - " + time.strftime("%d%b%Y", lastDate)
         return text
 
+    def formatRunInfo(self, info):
+        date, tag = info
+        if tag.isdigit():
+            return time.strftime("%d%b%Y", date) + "." + tag
+        return tag
+
+    def toDate(self, timeStruct):
+        return datetime.date.fromtimestamp(time.mktime(timeStruct))
+
     def getRecentTagText(self, mostRecentInfo):
         if len(mostRecentInfo) > 2:
             return str(len(mostRecentInfo)) + " test runs" + self.getDateRangeText(mostRecentInfo)
         else:
             suffix = "s" if len(mostRecentInfo) > 1 else ""
-            mostRecentTags = [i[1] for i in mostRecentInfo]
+            mostRecentTags = [self.formatRunInfo(i) for i in mostRecentInfo]
             return "test run" + suffix + " " + ", ".join(mostRecentTags)
 
     def generatePage(self, dataFinder, appsWithVersions, fileToUrl):
@@ -572,7 +585,7 @@ class SummaryGenerator:
                 fracs.append(count)
                 colours.append(colour)
                 tests += count
-        title = lastInfo[1] + " - " + str(tests) + " tests"
+        title = self.formatRunInfo(lastInfo) + " - " + str(tests) + " tests"
         pg = PieGraph(version, title, size=5)
         pg.pie(fracs, colours)
         summaryGraphFile = os.path.join(dataFinder.location, summaryGraphName)
@@ -582,11 +595,12 @@ class SummaryGenerator:
             pg.save(summaryGraphFile)
 
     def showResultAsOld(self, info, mostRecentInfo):
-        # Only do this for timed results, i.e. nightjobs etc. From CI/Jenkins etc we can't really tell
-        # - it depends on the schedule which we can't see and may not even exist
-        if not self.isDate(info[1]):
+        if not mostRecentInfo:
             return False
-        return all((info[0] != i[0] for i in mostRecentInfo))
+        if self.isDate(info[1]):
+            return all((info[0] != i[0] for i in mostRecentInfo))
+        mostRecentDate = max((self.toDate(i[0]) for i in mostRecentInfo))
+        return mostRecentDate - self.toDate(info[0]) > datetime.timedelta(days=1)
 
     def isDate(self, tag):
         # Allow also for Jenkins format, 13Jan2006.1234
@@ -665,7 +679,7 @@ class SummaryGenerator:
                     if prevResultSummary:
                         image = self.getTrendImage(resultSummary, prevResultSummary)
                         dataFinder.ensureLocationFileExists(image)
-                        tooltip = self.getTooltipForPrevious(prevResultSummary, nextLastInfo[1])
+                        tooltip = self.getTooltipForPrevious(prevResultSummary, self.formatRunInfo(nextLastInfo))
                         file.write('    <td class="arrow_cell"><img src="' +
                                    dataFinder.getLink(image) + '" title="' + tooltip + '"/></td>\n')
                     file.write("  </tr></table>")
